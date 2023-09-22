@@ -1,17 +1,7 @@
-import { useState } from 'react';
+export { useAnimikro } from './useAnimikro';
+export { configurePants } from './configurePants';
 
-type Bar = {
-  name: string;
-  set: (name: string) => void;
+export type AnimationOptions = {
+  keyframes: Keyframe[] | PropertyIndexedKeyframes | null;
+  options?: number | KeyframeAnimationOptions | undefined;
 };
-
-function useFoo(name: string): Bar {
-  const [id, setId] = useState(name);
-
-  return {
-    name: id,
-    set: setId,
-  };
-}
-
-export { useFoo };

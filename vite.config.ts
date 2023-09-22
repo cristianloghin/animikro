@@ -14,7 +14,7 @@ export default defineConfig({
       fileName: 'react-animikro',
     },
     rollupOptions: {
-      external: ['react'],
+      external: ['react', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',
