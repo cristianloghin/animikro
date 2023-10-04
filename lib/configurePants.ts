@@ -1,4 +1,4 @@
-import animationState from './AnimationAgent';
+import animationState from './Manager';
 
 interface InitializeStateParams {
   color?: string;
