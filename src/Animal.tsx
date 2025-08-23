@@ -7,11 +7,14 @@ export function Animal() {
     {
       in: mikro2(
         {
-          opacity: [0, 1],
-          transform: ['translateX(-100px)', 'translateX(0)'],
-          easing: 'easeIn',
+          fade: [0, 1],
+          slide: [
+            ['-100%', 0],
+            [0, 0],
+          ],
         },
-        'long'
+        'long',
+        'ease-in'
       ),
     },
     { autoPlay: false }

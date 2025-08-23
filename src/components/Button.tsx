@@ -18,7 +18,7 @@ function Button({ label, onClick }: { label: string; onClick?: () => void }) {
   const [AnimatedButton, controller] = useAnimikro(
     animationLabel,
     {
-      in: mikro2({ backgroundColor: ['navy'] }, 'short'),
+      in: mikro2({ background: ['#483D8B'] }, 'short'),
     },
     { element: 'button', autoPlay: false }
   );

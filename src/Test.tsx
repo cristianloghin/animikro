@@ -1,21 +1,29 @@
 import { useState } from 'react';
-import { useAnimikro, mikro2 } from '../lib/main';
+import { useAnimikro, mikro, mikro2 } from '../lib/main';
 import { useAnimikroAgent } from '../lib/useAnimikroAgent';
 
 const pullInAnimation = mikro2(
   {
-    opacity: [0, 1],
-    transform: ['translateX(200px)', 'translateX(0)'],
+    fade: [0, 1],
+    slide: [
+      [200, 0],
+      [0, 0],
+    ],
   },
-  'long'
+  'long',
+  'ease-in'
 );
 
 const pullOutAnimation = mikro2(
   {
-    opacity: [1, 0],
-    transform: ['translateX(0)', 'translateX(200px)'],
+    fade: [1, 0],
+    slide: [
+      ['0px', '0px'],
+      ['200px', '0px'],
+    ],
   },
-  'regular'
+  'short',
+  'ease-out'
 );
 
 function Test() {
@@ -36,7 +44,7 @@ function Test() {
   const [TestAnim, controller, playState] = useAnimikro(
     'put-test',
     {
-      in: mikro2(
+      in: mikro(
         {
           opacity: [0, 1],
           transform: ['translate3D(200px, 0, 0)', 'translate3D(0, 0, 0)'],

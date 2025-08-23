@@ -20,12 +20,24 @@ function Sidebar({ show }: SidebarProps) {
     'sidebar-wrapper',
     {
       in: mikro2(
-        { marginLeft: ['-200px', '0px'], easing: 'easeIn' },
-        'regular'
+        {
+          move: [
+            [-200, 0],
+            [0, 0],
+          ],
+        },
+        'regular',
+        'ease-in'
       ),
       out: mikro2(
-        { marginLeft: ['0px', '-200px'], easing: 'easeOut' },
-        'short'
+        {
+          move: [
+            [0, 0],
+            [-200, 0],
+          ],
+        },
+        'short',
+        'ease-out'
       ),
     },
     {},

@@ -2,7 +2,8 @@
 export { useAnimikro } from './useAnimikro';
 export { useAnimikroAgent } from './useAnimikroAgent';
 export { configurePants } from './configurePants';
-export { mikro, mikro2 } from './mikro.ts';
+export { mikro } from './old_mikro.ts';
+export { mikro as mikro2 } from './mikro.ts';
 
 export interface AnimationOptions {
   keyframes: Keyframe[] | PropertyIndexedKeyframes;
