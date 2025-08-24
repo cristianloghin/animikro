@@ -8,7 +8,7 @@ export const Header = ({
 }: {
   children?: React.ReactNode;
   title: string;
-  playState: string;
+  playState?: string;
   description: string;
 }) => {
   return (
@@ -28,7 +28,7 @@ export const Header = ({
         }}
       >
         <h2 style={{ padding: 0, margin: 0 }}>{title}</h2>
-        <StatePill state={playState} />
+        {playState && <StatePill state={playState} />}
       </div>
       <p style={{ padding: 0, margin: 0, textAlign: "left" }}>{description}</p>
       {children && <div>{children}</div>}
