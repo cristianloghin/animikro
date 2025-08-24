@@ -13,6 +13,17 @@ export const basicAnimation = createAnimation({
     "long",
     "ease-in"
   ),
+  out: mikro(
+    {
+      fade: [1, 0],
+      slide: [
+        [0, 0],
+        ["-100%", 0],
+      ],
+    },
+    "long",
+    "ease-out"
+  ),
 });
 
 const pullInAnimation = mikro(

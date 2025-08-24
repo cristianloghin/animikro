@@ -11,13 +11,13 @@ export function Exit() {
   return (
     <div>
       <Header
-        title="Basic animation"
+        title="Enter/Exit animation"
         playState={playState}
-        description="Basic animation example using Animikro."
+        description="Animate component mount/unmount example."
       >
-        <div>
+        <div style={{ marginTop: ".75rem" }}>
           <Button onClick={() => setMount(!mount)}>
-            {mount ? "Unmount" : "Mount"}
+            {mount ? "Animate out and unmount" : "Mount and animate in"}
           </Button>
         </div>
       </Header>
