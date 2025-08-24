@@ -56,15 +56,8 @@ function useAnimikro(
   );
 
   useEffect(() => {
-    manager.addObserver(key, observer);
-
-    return () => {
-      manager.removeObserver(key);
-    };
-  }, [key, observer]);
-
-  useEffect(() => {
     if (mount) {
+      manager.addObserver(key, observer);
       setShouldRender(true);
     }
   }, [mount]);
@@ -128,14 +121,7 @@ function useAnimikro(
         }
       }
     },
-    [
-      mount,
-      key,
-      animationDef.in.keyframes,
-      animationDef.in.options,
-      options?.autoPlay,
-      options?.onFinished,
-    ] // More specific dependencies
+    [mount]
   );
 
   const Animation = useMemo<AnimatedElement>(() => {
@@ -155,7 +141,7 @@ function useAnimikro(
             props.children
           )
         : null;
-  }, [setRef, shouldRender, options]);
+  }, []);
 
   const startAnimation = useCallback(() => manager.start(key), [key]);
   const pauseAnimation = useCallback(() => manager.pause(key), [key]);
