@@ -3,6 +3,7 @@ import { Basic } from "./examples/Basic";
 import "./App.css";
 import { Controlled } from "./examples/Controlled";
 import { ClientDemo } from "./examples/Client";
+import { Exit } from "./examples/Exit";
 // import { Layout } from "./examples/Sidebar/Layout";
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       <Basic />
       <Controlled />
+      <Exit />
       <ClientDemo />
       {/* <Test />
       <h2>Sidebar</h2>
