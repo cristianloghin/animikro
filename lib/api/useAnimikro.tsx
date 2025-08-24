@@ -6,9 +6,9 @@ import {
   useState,
   CSSProperties,
   createElement,
-} from 'react';
-import manager, { Observer, Manager } from './Manager';
-import { AnimationOptions } from './main';
+} from "react";
+import manager from "../core/Animikro";
+import { AnimationDefinition, Observer } from "../types";
 
 type AnimatedElement = React.FC<
   {
@@ -19,43 +19,52 @@ type AnimatedElement = React.FC<
 >;
 
 function useAnimikro(
-  key: string,
-  animation: {
-    in: AnimationOptions;
-    out?: AnimationOptions;
-    hover?: AnimationOptions;
-  },
+  animationDef: AnimationDefinition,
   options?: {
     element?: keyof React.ReactHTML;
     autoPlay?: boolean;
     onFinished?: () => void;
-  },
-  mount = true
-): [
-  AnimatedElement,
-  { start: () => void; pause: () => void; reverse: () => void },
-  AnimationPlayState
-] {
-  const [playState, setPlayState] = useState<AnimationPlayState>('idle');
-  const [shouldRender, setShouldRender] = useState(mount);
+    mount?: boolean;
+  }
+): {
+  Animation: AnimatedElement;
+  controller: {
+    start: () => void;
+    pause: () => void;
+    reverse: () => void;
+  };
+  playState: AnimationPlayState;
+} {
+  const mount = options?.mount ?? true;
+  const [playState, setPlayState] = useState<AnimationPlayState>("idle");
+  const [shouldRender, setShouldRender] = useState(false);
+  const key = useMemo(
+    () => manager.registerAnimationDefinition(animationDef),
+    [animationDef]
+  );
 
-  const observer = useMemo<Observer>(
-    () => ({
-      update: (manager) => {
-        if (manager instanceof Manager) {
-          const anim = manager.getAnimation(key);
-          if (anim) {
-            setPlayState(anim.playState);
-          }
-        }
-      },
-    }),
-    []
+  const observer = useCallback<Observer>(
+    (system) => {
+      const anim = system.getAnimation(key);
+      if (anim) {
+        setPlayState((current) =>
+          current === anim.playState ? current : anim.playState
+        );
+      }
+    },
+    [key]
   );
 
   useEffect(() => {
+    manager.addObserver(key, observer);
+
+    return () => {
+      manager.removeObserver(key);
+    };
+  }, [key, observer]);
+
+  useEffect(() => {
     if (mount) {
-      manager.addObserver(key, observer);
       setShouldRender(true);
     }
   }, [mount]);
@@ -63,8 +72,17 @@ function useAnimikro(
   const setRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (node && mount) {
+        // Check if animation already exists to prevent duplicates
+        if (manager.getAnimation(key)) {
+          console.log(`Animation ${key} already exists, skipping creation`);
+          return;
+        }
+
         // Animate in
-        const anim = node.animate(animation.in.keyframes, animation.in.options);
+        const anim = node.animate(
+          animationDef.in.keyframes,
+          animationDef.in.options
+        );
 
         // On finish callback
         anim.onfinish = () => {
@@ -82,11 +100,11 @@ function useAnimikro(
           manager.pause(key);
         }
       } else if (node && !mount) {
-        if (animation.out) {
+        if (animationDef.out) {
           // Animate out
           const anim = node.animate(
-            animation.out.keyframes,
-            animation.out.options
+            animationDef.out.keyframes,
+            animationDef.out.options
           );
           anim.onfinish = () => {
             setShouldRender(false);
@@ -110,17 +128,24 @@ function useAnimikro(
         }
       }
     },
-    [mount]
+    [
+      mount,
+      key,
+      animationDef.in.keyframes,
+      animationDef.in.options,
+      options?.autoPlay,
+      options?.onFinished,
+    ] // More specific dependencies
   );
 
   const Animation = useMemo<AnimatedElement>(() => {
     return (props) =>
       shouldRender
         ? createElement(
-            options?.element || 'div',
+            options?.element || "div",
             {
               ref: setRef,
-              style: { ...props.style, willChange: 'auto' },
+              style: { ...props.style, willChange: "auto" },
               onMouseEnter: props.onMouseEnter,
               onMouseOver: props.onMouseOver,
               onMouseLeave: props.onMouseLeave,
@@ -130,22 +155,25 @@ function useAnimikro(
             props.children
           )
         : null;
-  }, [setRef, shouldRender]);
+  }, [setRef, shouldRender, options]);
 
   const startAnimation = useCallback(() => manager.start(key), [key]);
   const pauseAnimation = useCallback(() => manager.pause(key), [key]);
   const reverseAnimation = useCallback(() => manager.reverse(key), [key]);
 
-  return [
-    Animation,
-    {
+  const controller = useMemo(() => {
+    return {
       start: startAnimation,
       pause: pauseAnimation,
       reverse: reverseAnimation,
-    },
+    };
+  }, [startAnimation, pauseAnimation, reverseAnimation]);
+
+  return {
+    Animation,
+    controller,
     playState,
-  ];
+  };
 }
 
-// export { useAnimikro, useAnimikro };
 export { useAnimikro };

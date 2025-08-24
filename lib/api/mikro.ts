@@ -1,10 +1,4 @@
-type Duration = 'short' | 'regular' | 'long';
-type Easing = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-
-export type Animation = {
-  keyframes: PropertyIndexedKeyframes;
-  options?: KeyframeAnimationOptions;
-};
+import { Duration, Easing, MikroAnimation } from "../types";
 
 const durationMapping: Record<Duration, number> = {
   short: 240,
@@ -13,10 +7,10 @@ const durationMapping: Record<Duration, number> = {
 };
 
 const easingMapping: Record<Easing, string> = {
-  linear: 'linear',
-  'ease-in': 'cubic-bezier(0.5, 0.1, 0.5, 0.8)',
-  'ease-out': 'cubic-bezier(0.5, 0.2, 0.5, 1.0)',
-  'ease-in-out': 'cubic-bezier(0.6, 0.1, 0.2, 0.9)',
+  linear: "linear",
+  "ease-in": "cubic-bezier(0.5, 0.1, 0.5, 0.8)",
+  "ease-out": "cubic-bezier(0.5, 0.2, 0.5, 1.0)",
+  "ease-in-out": "cubic-bezier(0.6, 0.1, 0.2, 0.9)",
 };
 
 export type MikroKeyframes = {
@@ -36,8 +30,8 @@ function move(values: [number | string, number | string][]) {
   return {
     margin: values.map(
       (value) =>
-        `${typeof value[1] === 'number' ? value[1] + 'px' : value[1]} 0 0 ${
-          typeof value[0] === 'number' ? value[0] + 'px' : value[0]
+        `${typeof value[1] === "number" ? value[1] + "px" : value[1]} 0 0 ${
+          typeof value[0] === "number" ? value[0] + "px" : value[0]
         }`
     ),
   };
@@ -48,8 +42,8 @@ function slide(values: [number | string, number | string][]) {
     transform: values.map(
       (value) =>
         `translate3D(${
-          typeof value[0] === 'number' ? value[0] + 'px' : value[0]
-        }, ${typeof value[1] === 'number' ? value[1] + 'px' : value[1]}, 0)`
+          typeof value[0] === "number" ? value[0] + "px" : value[0]
+        }, ${typeof value[1] === "number" ? value[1] + "px" : value[1]}, 0)`
     ),
   };
 }
@@ -64,7 +58,7 @@ export function mikro(
   keyframes: MikroKeyframes,
   duration?: Duration | number,
   easing?: Easing
-): Animation {
+): MikroAnimation {
   let normalizedKeyframes = {};
 
   if (keyframes.fade) {
@@ -90,12 +84,12 @@ export function mikro(
     keyframes: normalizedKeyframes,
     options: {
       duration: duration
-        ? typeof duration === 'number'
+        ? typeof duration === "number"
           ? duration
           : durationMapping[duration]
-        : durationMapping['regular'],
-      easing: easing ? easingMapping[easing] : easingMapping['linear'],
-      fill: 'both',
+        : durationMapping["regular"],
+      easing: easing ? easingMapping[easing] : easingMapping["linear"],
+      fill: "both",
     },
   };
 }

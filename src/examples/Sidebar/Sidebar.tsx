@@ -1,13 +1,13 @@
-import { CSSProperties, Dispatch, SetStateAction } from 'react';
-import { useAnimikro } from '../../../lib/useAnimikro';
-import { mikro2 } from '../../../lib/main';
+import { CSSProperties, Dispatch, SetStateAction } from "react";
+import { useAnimikro } from "../../../lib/main";
+import { sidebarAnimation } from "../../animations";
 
 const sidebarStyle: CSSProperties = {
-  backgroundColor: 'navy',
-  height: '100%',
+  backgroundColor: "navy",
+  height: "100%",
   width: 200,
   padding: 20,
-  boxSizing: 'border-box',
+  boxSizing: "border-box",
 };
 
 type SidebarProps = {
@@ -16,33 +16,7 @@ type SidebarProps = {
 };
 
 function Sidebar({ show }: SidebarProps) {
-  const [Wrapper] = useAnimikro(
-    'sidebar-wrapper',
-    {
-      in: mikro2(
-        {
-          move: [
-            [-200, 0],
-            [0, 0],
-          ],
-        },
-        'regular',
-        'ease-in'
-      ),
-      out: mikro2(
-        {
-          move: [
-            [0, 0],
-            [-200, 0],
-          ],
-        },
-        'short',
-        'ease-out'
-      ),
-    },
-    {},
-    show
-  );
+  const [Wrapper] = useAnimikro(sidebarAnimation, { mount: show });
 
   return (
     <Wrapper style={sidebarStyle}>
