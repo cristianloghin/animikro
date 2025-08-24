@@ -3,11 +3,12 @@ export const StatePill = ({ state }: { state: string }) => {
     <div
       style={{
         display: "inline-block",
-        padding: ".25rem .5rem",
-        borderRadius: ".25rem",
+        padding: "0 .75rem",
+        borderRadius: ".75rem",
         background: getBackgroundColor(state),
         color: "white",
         fontSize: ".75rem",
+        lineHeight: "1.5rem",
       }}
     >
       {state}

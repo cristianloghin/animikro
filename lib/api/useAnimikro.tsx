@@ -141,7 +141,7 @@ function useAnimikro(
             props.children
           )
         : null;
-  }, []);
+  }, [setRef, shouldRender]);
 
   const startAnimation = useCallback(() => manager.start(key), [key]);
   const pauseAnimation = useCallback(() => manager.pause(key), [key]);

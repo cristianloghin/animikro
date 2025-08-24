@@ -6,13 +6,13 @@ import { Controlled } from "./examples/Controlled";
 
 function App() {
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
       <Basic />
       <Controlled />
       {/* <Test />
       <h2>Sidebar</h2>
       <Layout /> */}
-    </>
+    </div>
   );
 }
 

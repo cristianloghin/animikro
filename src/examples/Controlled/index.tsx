@@ -14,12 +14,20 @@ export function Controlled() {
         title="Controlled animation"
         playState={playState}
         description="Controlled animation example using Animikro."
-      />
-      <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
-        <Button onClick={() => controller.start()}>Start</Button>
-        <Button onClick={() => controller.pause()}>Pause</Button>
-        <Button onClick={() => controller.reverse()}>Reverse</Button>
-      </div>
+      >
+        <div
+          style={{
+            display: "flex",
+            marginTop: "1rem",
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
+          <Button onClick={() => controller.start()}>Start</Button>
+          <Button onClick={() => controller.pause()}>Pause</Button>
+          <Button onClick={() => controller.reverse()}>Reverse</Button>
+        </div>
+      </Header>
       <Animation>
         <div
           style={{
