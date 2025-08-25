@@ -1,5 +1,4 @@
 import { AnimationDefinition, AnimikroInterface } from "../types";
-
 export class Animikro implements AnimikroInterface {
   private static instance: Animikro;
   private animationDefinitions: Map<string, AnimationDefinition> = new Map();
@@ -71,9 +70,9 @@ export class Animikro implements AnimikroInterface {
     }
   }
 
-  public notifyObservers(key: string): void {
+  notifyObservers = (key: string) => {
     this.subscribers.get(key)?.forEach((cb) => cb());
-  }
+  };
 
   subscribe = (key: string, cb: () => void): (() => void) => {
     if (!this.subscribers.has(key)) {

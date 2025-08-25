@@ -25,6 +25,12 @@ export type MikroAnimation = {
   options?: KeyframeAnimationOptions;
 };
 
+export interface AnimationController {
+  start: () => void;
+  pause: () => void;
+  reverse: () => void;
+}
+
 export interface AnimikroInterface {
   getAnimation(key: string): Animation | undefined;
 }

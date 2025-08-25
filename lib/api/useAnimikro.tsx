@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import manager from "../core/Animikro";
-import { AnimationDefinition } from "../types";
+import { AnimationController, AnimationDefinition } from "../types";
 
 type AnimatedElement = React.FC<
   {
@@ -29,11 +29,7 @@ function useAnimikro(
   }
 ): {
   Animation: AnimatedElement;
-  controller: {
-    start: () => void;
-    pause: () => void;
-    reverse: () => void;
-  };
+  controller: AnimationController;
   playState: AnimationPlayState;
 } {
   const mount = options?.mount ?? true;
