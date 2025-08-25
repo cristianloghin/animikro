@@ -6,9 +6,10 @@ import {
   useState,
   CSSProperties,
   createElement,
+  useSyncExternalStore,
 } from "react";
 import manager from "../core/Animikro";
-import { AnimationDefinition, Observer } from "../types";
+import { AnimationDefinition } from "../types";
 
 type AnimatedElement = React.FC<
   {
@@ -36,28 +37,20 @@ function useAnimikro(
   playState: AnimationPlayState;
 } {
   const mount = options?.mount ?? true;
-  const [playState, setPlayState] = useState<AnimationPlayState>("idle");
-  const [shouldRender, setShouldRender] = useState(false);
   const key = useMemo(
     () => manager.registerAnimationDefinition(animationDef),
     [animationDef]
   );
 
-  const observer = useCallback<Observer>(
-    (system) => {
-      const anim = system.getAnimation(key);
-      if (anim) {
-        setPlayState((current) =>
-          current === anim.playState ? current : anim.playState
-        );
-      }
-    },
-    [key]
+  const animationState = useSyncExternalStore(
+    (cb) => manager.subscribe(key, cb),
+    () => manager.getSnapshot(key)
   );
+
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
     if (mount) {
-      manager.addObserver(key, observer);
       setShouldRender(true);
     }
   }, [mount]);
@@ -103,7 +96,6 @@ function useAnimikro(
             setShouldRender(false);
 
             manager.removeAnimation(key);
-            manager.removeObserver(key);
 
             if (options?.onFinished) {
               options.onFinished();
@@ -113,7 +105,6 @@ function useAnimikro(
           // Remove component
           setShouldRender(false);
           manager.removeAnimation(key);
-          manager.removeObserver(key);
 
           if (options?.onFinished) {
             options.onFinished();
@@ -158,7 +149,7 @@ function useAnimikro(
   return {
     Animation,
     controller,
-    playState,
+    playState: animationState,
   };
 }
 

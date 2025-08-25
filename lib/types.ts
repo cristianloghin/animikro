@@ -26,10 +26,5 @@ export type MikroAnimation = {
 };
 
 export interface AnimikroInterface {
-  addObserver(key: string, observer: (system: AnimikroInterface) => void): void;
   getAnimation(key: string): Animation | undefined;
-  removeObserver(key: string): void;
-  notifyObservers(key: string): void;
 }
-
-export type Observer = (system: AnimikroInterface) => void;

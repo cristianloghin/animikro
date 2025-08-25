@@ -6,7 +6,13 @@ import { Button } from "../../components/Button";
 
 export function Exit() {
   const [mount, setMount] = useState(false);
-  const { Animation, playState } = useAnimikro(basicAnimation, { mount });
+  const { Animation: MainAnimation, playState } = useAnimikro(basicAnimation, {
+    mount,
+  });
+
+  const handleMount = () => {
+    setMount(!mount);
+  };
 
   return (
     <div>
@@ -16,12 +22,12 @@ export function Exit() {
         description="Animate component mount/unmount example."
       >
         <div style={{ marginTop: ".75rem" }}>
-          <Button onClick={() => setMount(!mount)}>
+          <Button onClick={handleMount}>
             {mount ? "Animate out and unmount" : "Mount and animate in"}
           </Button>
         </div>
       </Header>
-      <Animation>
+      <MainAnimation>
         <div
           style={{
             background: "#1e6bc9ff",
@@ -31,7 +37,7 @@ export function Exit() {
         >
           <h2>I'm an exit animated element!</h2>
         </div>
-      </Animation>
+      </MainAnimation>
     </div>
   );
 }

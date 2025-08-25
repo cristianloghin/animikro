@@ -17,6 +17,7 @@ export type MikroKeyframes = {
   fade?: number[];
   move?: [number | string, number | string][];
   slide?: [number | string, number | string][];
+  scale?: [number, number][];
   background?: `#${string}`[];
 };
 
@@ -48,6 +49,12 @@ function slide(values: [number | string, number | string][]) {
   };
 }
 
+function scale(values: [number, number][]) {
+  return {
+    transform: values.map((value) => `scale(${value[0]}, ${value[1]})`),
+  };
+}
+
 function background(values: `#${string}`[]) {
   return {
     backgroundColor: values,
@@ -71,6 +78,10 @@ export function mikro(
 
   if (keyframes.slide) {
     normalizedKeyframes = { ...normalizedKeyframes, ...slide(keyframes.slide) };
+  }
+
+  if (keyframes.scale) {
+    normalizedKeyframes = { ...normalizedKeyframes, ...scale(keyframes.scale) };
   }
 
   if (keyframes.background) {
