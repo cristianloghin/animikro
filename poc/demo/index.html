@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>animikro — vanilla core PoC</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0e1116;
+        --panel: #171b22;
+        --ink: #e6edf3;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --navy: #1f6feb;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+      h2 { font-size: 1rem; color: var(--accent); margin: 2rem 0 0.75rem; }
+      p.lede { color: var(--muted); margin: 0 0 1rem; max-width: 60ch; }
+      .demo {
+        background: var(--panel);
+        border: 1px solid #2a313a;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+      }
+      .controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+      button {
+        background: #21262d;
+        color: var(--ink);
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      button:hover { border-color: var(--accent); }
+      input[type="range"] { flex: 1; min-width: 160px; }
+      select { background: #21262d; color: var(--ink); border: 1px solid #30363d; border-radius: 8px; padding: 0.3rem; }
+      .readout { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+      code { background: #21262d; padding: 0.1rem 0.35rem; border-radius: 5px; font-size: 0.85em; }
+
+      /* ---- sidebar demo ---- */
+      .stage { display: flex; gap: 1rem; min-height: 240px; }
+      .sidebar { background: var(--navy); border-radius: 10px; padding: 1rem; width: 220px; }
+      .sidebar h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+      .sidebar a {
+        display: block; color: #fff; text-decoration: none;
+        padding: 0.45rem 0.6rem; border-radius: 6px; background: rgba(255,255,255,0.08);
+        margin-bottom: 0.4rem; font-size: 0.9rem;
+      }
+
+      /* ---- "static states" demo: the attribute IS the CSS selector ---- */
+      .card {
+        background: #21262d; border: 1px solid #30363d; border-radius: 10px;
+        padding: 1rem 1.25rem; width: 260px;
+      }
+      [data-ani-state="closed"] { opacity: 0; transform: translateX(-24px); }
+      [data-ani-state="open"]   { opacity: 1; transform: translateX(0); }
+    </style>
+  </head>
+  <body>
+    <h1>animikro — vanilla core PoC</h1>
+    <p class="lede">
+      One primitive (the scene), nested timelines with relative timing,
+      intrinsic durations computed from the live DOM, an imperative controller —
+      all over the Web Animations API, no framework. Bound to the DOM with
+      <code>data-*</code> attributes.
+    </p>
+
+    <!-- ============ Tier 2: a nested, coordinated scene ============ -->
+    <h2>1 · Nested scene + coordination (tier 2, JS-authored)</h2>
+    <p class="lede">
+      The title fades in; the links are a <em>child scene</em> that starts
+      halfway through the title's enter (<code>at: "title@0.5"</code>) and
+      staggers its own children. Change the link count — the total duration
+      recomputes itself (the intrinsic-duration claim, live).
+    </p>
+    <div class="demo">
+      <div class="controls">
+        <button id="play">▶ Play</button>
+        <button id="reverse">◀ Reverse</button>
+        <button id="pause">❚❚ Pause</button>
+        <input id="scrub" type="range" min="0" max="1000" value="0" />
+        <label class="readout">links:
+          <select id="count">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+          </select>
+        </label>
+        <span id="readout" class="readout"></span>
+      </div>
+      <div class="stage">
+        <aside class="sidebar" id="sidebar">
+          <h3 data-ani="title">Menu</h3>
+          <nav id="links"></nav>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ============ Tier 1: declarative enter ============ -->
+    <h2>2 · Declarative enter (tier 1, zero JS scene)</h2>
+    <p class="lede">
+      Just markup: <code>&lt;div data-ani-enter="rise"&gt;</code> inside a
+      <code>data-ani-scene</code> with <code>data-ani-stagger="120"</code>.
+      The projector scans and plays on mount.
+    </p>
+    <div class="demo">
+      <div class="controls"><button id="replay-auto">↻ Replay</button></div>
+      <div class="stage" id="auto-stage" data-ani-scene data-ani-stagger="120">
+        <div class="card" data-ani-enter="rise">First</div>
+        <div class="card" data-ani-enter="rise">Second</div>
+        <div class="card" data-ani-enter="rise">Third</div>
+      </div>
+    </div>
+
+    <!-- ============ Tier 1: attribute = CSS selector + motion trigger ============ -->
+    <h2>3 · Static states (the attribute is both selector and trigger)</h2>
+    <p class="lede">
+      CSS owns the resting states off <code>data-ani-state</code> (delete the JS
+      and it still works — it just snaps). Toggling the attribute drives the
+      <code>reveal</code> Change atom through the controller, so the same flip
+      can play forward or reverse from its current position.
+    </p>
+    <div class="demo">
+      <div class="controls"><button id="toggle">Toggle state</button>
+        <span id="state-readout" class="readout"></span>
+      </div>
+      <div class="stage">
+        <div class="card" id="panel" data-ani-state="closed" data-ani-change="reveal">
+          I animate between two static CSS states.
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { createAnimikro } from '../core/index.js';
+      import { mount, auto } from '../vanilla/project.js';
+
+      // ---- the motion vocabulary (design note 9) ----
+      const ani = createAnimikro({
+        durations: { short: 220, regular: 380, long: 560 },
+        atoms: {
+          fadeIn: () => ({ keyframes: { opacity: [0, 1] }, duration: 'regular', easing: 'ease-out' }),
+          rise: () => ({
+            keyframes: { opacity: [0, 1], transform: ['translateY(16px)', 'translateY(0)'] },
+            duration: 'regular', easing: 'ease-out',
+          }),
+          reveal: () => ({
+            keyframes: { opacity: [0, 1], transform: ['translateX(-24px)', 'translateX(0)'] },
+            duration: 'regular', easing: 'ease-out',
+          }),
+        },
+      });
+
+      // ---- the sidebar scene: a reusable, nested definition ----
+      const links = ani.scene((t) => t.each('link', 'rise', { stagger: 90 }));
+      const sidebar = ani.scene((t) =>
+        t.scene([
+          t.track('title', t.clip('title', 'fadeIn')),
+          t.track('links', links(), { at: 'title@0.5' }),
+        ])
+      );
+
+      const $ = (id) => document.getElementById(id);
+      const root = $('sidebar');
+      const nav = $('links');
+      let ctrl = null;
+      let raf = null;
+
+      function buildLinks(n) {
+        nav.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+          const a = document.createElement('a');
+          a.dataset.ani = 'link';
+          a.textContent = 'Link ' + (i + 1);
+          nav.appendChild(a);
+        }
+      }
+
+      function remount() {
+        if (raf) cancelAnimationFrame(raf);
+        ctrl = mount(root, sidebar);          // bind data-* + resolve + drive
+        ctrl.seek(0);
+        $('scrub').value = 0;
+        $('readout').textContent = `total ${Math.round(ctrl.total)}ms · ${ctrl.state}`;
+      }
+
+      function tick() {
+        if (!ctrl) return;
+        const p = ctrl.total ? ctrl.time / ctrl.total : 0;
+        $('scrub').value = Math.max(0, Math.min(1000, p * 1000));
+        $('readout').textContent =
+          `total ${Math.round(ctrl.total)}ms · t=${Math.round(ctrl.time)}ms · ${ctrl.state}`;
+        if (ctrl.state === 'running') raf = requestAnimationFrame(tick);
+      }
+
+      $('play').onclick = () => { ctrl.seek(0).play(); tick(); };
+      $('reverse').onclick = () => { ctrl.reverse(); tick(); };
+      $('pause').onclick = () => { ctrl.pause(); };
+      $('scrub').oninput = (e) => { ctrl.pause(); ctrl.seek((e.target.value / 1000) * ctrl.total); tick(); };
+      $('count').onchange = (e) => { buildLinks(Number(e.target.value)); remount(); };
+
+      buildLinks(5);
+      remount();
+
+      // ---- tier 1: declarative enter ----
+      const replay = () => auto($('auto-stage'), ani);
+      $('replay-auto').onclick = replay;
+      replay();
+
+      // ---- tier 1: static-state toggle, driven through the controller ----
+      const panel = $('panel');
+      // resolve a one-clip "reveal" scene once; reuse its controller both ways.
+      let panelCtrl = mount(root.ownerDocument.body, { type: 'clip', target: panel, atom: ani.makeAtom('reveal') });
+      $('state-readout').textContent = panel.dataset.aniState;
+      $('toggle').onclick = () => {
+        const opening = panel.dataset.aniState === 'closed';
+        panel.dataset.aniState = opening ? 'open' : 'closed'; // the attribute flip
+        opening ? panelCtrl.seek(0).play() : panelCtrl.reverse();
+        $('state-readout').textContent = panel.dataset.aniState;
+      };
+    </script>
+  </body>
+</html>
