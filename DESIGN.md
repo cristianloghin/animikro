@@ -185,6 +185,135 @@ play-state change via an observer→`setState` loop. `createAnimikro()` is the
 collisions, no god-object), and `useSyncExternalStore` is the provider-free
 way to expose its state.
 
+## The vanilla API (`data-*` driven)
+
+The vanilla projector is built on `data-*` attributes. This is not an
+aesthetic choice — **a `data-*` attribute is the DOM-native answer to "which
+node fills which slot," i.e. the vanilla twin of React's ref factory.** The
+two projectors come out symmetric:
+
+- React projector: `ref={scene.ref("title")}`
+- Vanilla projector: `data-ani="title"`
+
+(This resolves the "target binding" open question for the vanilla side.)
+
+### The killer property: one attribute is both CSS selector and motion trigger
+
+A `data-*` attribute can simultaneously be a CSS selector *and* an animation
+trigger — which makes the "static states are the source of truth, motion is
+orthogonal" philosophy *literally true in the markup*:
+
+```html
+<aside data-ani-state="closed" data-ani-change="slide">…</aside>
+```
+```css
+/* the static states — authored as if motion didn't exist */
+[data-ani-state="closed"] { transform: translateX(-100%); }
+[data-ani-state="open"]   { transform: translateX(0); }
+```
+```js
+el.dataset.aniState = "open";   // flip → animikro plays the "slide" Change atom
+```
+
+Flip one attribute: CSS already describes both resting states off it (delete
+animikro and the panel still works, it just snaps), and animikro interpolates
+between them via the named `Change` atom. The attribute is the state
+declaration, the CSS selector, and the motion trigger at once — only possible
+*because* states live outside the animation layer.
+
+### Two continuous tiers (same markup flows between them)
+
+**Tier 1 — declarative, attribute-driven. The tax-free trivial case.** A leaf
+scene authored entirely in markup, zero JS. Atom-by-key is the "token" form
+(note 9) — just strings, born for attribute-land:
+
+```html
+<!-- fades+rises in when inserted, fades out before removal -->
+<button data-ani-enter="fadeIn" data-ani-exit="fadeOut">Save</button>
+```
+
+Nesting and stagger fall out of DOM structure (note 5; here "scene tree ≈
+DOM tree"):
+
+```html
+<section data-ani-scene="sidebar">
+  <h2  data-ani="title" data-ani-enter="fadeIn">Menu</h2>
+  <nav data-ani-scene="links" data-ani-stagger="80">
+    <a data-ani="link" data-ani-enter="rise">Home</a>
+    <a data-ani="link" data-ani-enter="rise">About</a>
+  </nav>
+</section>
+```
+
+**Tier 2 — JS scene graph, for coordination / typed params / computed timing,
+referencing the *same* markup.** The markup does not change; JS *references*
+the data-bound targets and adds the relationships attributes can't express
+cleanly:
+
+```js
+const ani = createAnimikro({ atoms: { fadeIn, rise, slide /* … */ } });
+
+const sidebar = ani.createScene((t) => ({
+  title: t.enter("title", "fadeIn"),
+  links: t.scene("links", { stagger: 80 }),
+  timeline: [
+    ["title", 0],
+    ["links", "title@0.5"],   // links start halfway through title's enter
+  ],
+}));
+
+sidebar.mount(document.querySelector('[data-ani-scene="sidebar"]'));
+sidebar.play();              // .enter() / .exit() / .reverse() / .seek() / await .finished
+```
+
+The continuity is the point: a button starts as `data-ani-enter="fadeIn"`, and
+the day it needs choreography with siblings you **don't rewrite the markup** —
+you author a scene in JS that references it by the attribute it already has.
+That is the "continuum" positioning made real at the API level: markup is the
+constant, JS is the optional power-up.
+
+### Division of labor (the line to hold)
+
+> **Attributes declare *what participates and what state it's in*. JS declares
+> *how participants relate in time*.**
+
+Same seam as notes 4 and 6: presence + static state (per-element, declarative)
+→ attributes; coordination (timeline, relative offsets, computed durations) →
+JS. Cap the declarative tier there. You *could* go full Alpine and encode the
+whole timeline in attributes (`data-ani-at="title+0.5"`…), but a timeline DSL
+in strings gets fragile fast and loses the typed parametrization (note 8) and
+typed vocabulary (note 9) that only survive in JS.
+
+### Provisional attribute vocabulary (names bikesheddable)
+
+| Attribute | Role |
+|---|---|
+| `data-ani-scene="name"` | declares a scene root / comp (nestable) |
+| `data-ani="slot"` | marks an element as a named target/slot in its scene |
+| `data-ani-enter="fadeIn"` | Enter atom (by vocabulary key) |
+| `data-ani-exit="fadeOut"` | Exit atom |
+| `data-ani-change="slide"` | Change atom (paired with `data-ani-state`) |
+| `data-ani-state="open"` | current static state — CSS selector **and** trigger |
+| `data-ani-stagger="80"` | convenience stagger for a scene's direct children |
+
+### Cautions (designed-for, not surprises)
+
+1. **Stringly-typed.** Typos (`data-ani-enter="fadIn"`) fail silently. Because
+   the *instance owns the registry*, the scanner validates every attribute
+   value against known atoms and `console.warn`s on misses — runtime safety to
+   compensate for no compile-time safety. Anything needing real type safety
+   lives in tier 2.
+2. **Reactivity engine is a `MutationObserver`.** That's *how* "flip the
+   attribute → it animates" works in pure vanilla — animikro watches
+   `data-ani-state` and fires the transition. A real moving part to design
+   (batch, debounce, disconnect on teardown).
+3. **The React path deliberately skips the observer.** In React the controller
+   drives the engine directly from state — no attribute-watching. So
+   attribute-reactivity is a *vanilla-tier* feature; both projectors write to
+   the same underlying scene engine through different front doors
+   (MutationObserver vs. controller calls). Keep that boundary crisp so the
+   core grows no React-shaped bulge.
+
 ## Build approach: vanilla first
 
 Build the core to run in a **plain HTML page (HTML + CSS + JS) first**, with
@@ -241,8 +370,10 @@ is just depth — the same API animates a single button or a dashboard.
   comp's length). Eager (resolve whole tree, then play) vs. lazy/streaming —
   and how that interacts with async rendering. Leaning eager + intrinsic +
   optional stretch (note 6).
-- **Target binding.** Exactly how a scene names its targets/slots and how the
-  projector fills them (ref factory in React; selector/element in vanilla).
+- **Target binding.** *Vanilla resolved* (see "The vanilla API"): scenes name
+  slots; `data-*` attributes bind nodes to them — the DOM-native twin of the
+  React ref factory. Still to pin down: the exact React ref-factory surface and
+  how slot names stay in sync across the two projectors.
 - **Atom base case.** Confirm the leaf contract: a scene whose timeline holds
   WAAPI animations rather than child scenes.
 - **Props × vocabulary seam.** When do scene props (note 8) flow into atom
